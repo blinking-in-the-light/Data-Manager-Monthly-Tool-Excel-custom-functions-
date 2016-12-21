@@ -1,0 +1,621 @@
+Option Explicit
+
+'module scope variables
+Dim lastRowBugs As Long
+Dim lastRowPriceBugs As Long
+Dim lastRowQuickAdds As Long
+Dim lastColBugs As Long
+Dim lastColPriceBugs As Long
+Dim lastColQuickAdds As Long
+
+
+
+Sub setLasts()
+
+        'get the dimensions of both dataSheet tables
+        'CITE: http://stackoverflow.com/questions/6301665/how-to-count-the-number-of-rows-in-excel-with-data
+        'call Globals module for global public constants
+        
+        Call setSheets
+        
+        lastRowBugs = Globals.bugSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        lastColBugs = Globals.bugSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+        lastRowPriceBugs = Globals.priceBugSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        lastColPriceBugs = Globals.priceBugSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+        lastRowQuickAdds = Globals.quickAddSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        lastColQuickAdds = Globals.quickAddSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+
+End Sub
+'This function will return the sum of all rows of the ___bug sheet where (assignee = <param>) EXCEPT for H-Codes bugs. Quick Adds are no longer on this sheet
+'NOTE: this excludes quick adds, H-code bugs and cost update bugs
+Public Function bugsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfBugs As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim ComponentCol As Long
+    Dim bugTypeCol As Long
+    Dim summaryCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'CITE: Tim J
+    
+    'Alias dataSheet as "."
+    With Globals.bugSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            bugsByAssignee = "-1"
+            Exit Function
+        End If
+
+        'set the Components column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            bugsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Bug Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Bug Type" Then
+                bugTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            bugsByAssignee = "-3"
+            Exit Function
+        End If
+        
+                'set the Bug Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Summary" Then
+                summaryCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            bugsByAssignee = "-4"
+            Exit Function
+        End If
+
+        countOfBugs = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowBugs
+            'where (assignee column = name)
+            If .Cells(myRow, assigneeCol).Value = assignee And Not .Cells(myRow, summaryCol).Value Like "CDSID*" Then
+                'add to assigneee bug count
+                countOfBugs = countOfBugs + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    bugsByAssignee = countOfBugs
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the bug sheet where (component = <param>) EXCEPT for H-Codes bugs.
+'NOTE: if this function were used on a sheet that has cost bugs or quick adds, it would count them as bugs
+Public Function bugsByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfBugs As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    'Dim bugTypeCol As Long REMOVED as unreliable. Not autopopulated by JIRA
+    Dim summaryCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'CITE: Tim J
+    
+    'Alias dataSheet as "."
+    With Globals.bugSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Component column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            bugsByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Summary column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Summary" Then
+                summaryCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            bugsByComponent = "-2"
+            Exit Function
+        End If
+
+        countOfBugs = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowBugs
+            'where (component column = component)AND summery NOT CDSID (harmonized code)
+            If .Cells(myRow, ComponentCol).Value = component And Not .Cells(myRow, summaryCol).Value Like "CDSID*" Then
+                'add to component bug count
+                countOfBugs = countOfBugs + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    bugsByComponent = countOfBugs
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the ___bug sheet where (assignee = <param>) and (Issue Type = Bug) and (Summary starts with "CDSID")
+'NOTE: this excludes quick adds and cost update bugs
+Public Function hCodeBugsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfBugs As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim issueTypeCol As Long
+    Dim summaryCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+       
+    Call setLasts
+       
+    'Alias dataSheet as "."
+    With bugSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            hCodeBugsByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the Issue Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Issue Type" Then
+                issueTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hCodeBugsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Bug Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Summary" Then
+                summaryCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hCodeBugsByAssignee = "-3"
+            Exit Function
+        End If
+        
+        countOfBugs = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowBugs
+            'where (assignee column = name) AND (Issue Type = Bug) AND (bug type = harmonized code)
+            If .Cells(myRow, assigneeCol).Value = assignee And .Cells(myRow, issueTypeCol).Value = "Bug" And .Cells(myRow, summaryCol).Value Like "CDSID*" Then
+                'add to assigneee bug count
+                countOfBugs = countOfBugs + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    hCodeBugsByAssignee = countOfBugs
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the ___bug sheet where (assignee = <param>)
+'Can be pointed at any bug sheet, doesn't have to be quick adds. Will return total for any kind of bug
+Public Function quickAddsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfQuickAdds As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim ComponentCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.quickAddSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastColQuickAdds
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            quickAddsByAssignee = "-1"
+            Exit Function
+        End If
+            
+        'set the Components column
+        For myCol = 1 To lastColQuickAdds
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            quickAddsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        countOfQuickAdds = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowQuickAdds
+            'where (assignee column = name)
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'add to assigneee bug count
+                countOfQuickAdds = countOfQuickAdds + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    quickAddsByAssignee = countOfQuickAdds
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the Quick Add sheet where (component = <param>)
+'Can be pointed at any bug sheet, doesn't have to be quick adds. Will return total for any kind of bug
+Public Function quickAddsByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfQuickAdds As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.quickAddSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+            
+        'set the Components column
+        For myCol = 1 To lastColQuickAdds
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            quickAddsByComponent = "-1"
+            Exit Function
+        End If
+        
+        countOfQuickAdds = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowQuickAdds
+            'where (component column = component)
+            If .Cells(myRow, ComponentCol).Value = component Then
+                'add to component bug count
+                countOfQuickAdds = countOfQuickAdds + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    quickAddsByComponent = countOfQuickAdds
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the ___bug sheet where (assignee = <param>) and (Bug Type = Price Correction)
+'NOTE: this includes all "regular" bugs and cost update bugs, but not Quick Adds
+Public Function costBugsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfBugs As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim bugTypeCol As Long
+    Dim summaryCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.priceBugSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/refer=ence-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastColPriceBugs
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            costBugsByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the Issue Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Bug Type" Then
+                bugTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            costBugsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Bug Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Summary" Then
+                summaryCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            costBugsByAssignee = "-3"
+            Exit Function
+        End If
+        
+        
+        countOfBugs = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowPriceBugs
+            'where (assignee column = name) AND (Summary starts with "Cost Update -")
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'add to assigneee cost bug count
+                countOfBugs = countOfBugs + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    costBugsByAssignee = countOfBugs
+
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all rows of the bug sheet where (component = <param>) and (Bug Type = Price Correction)
+Public Function costBugsByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfBugs As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    'Dim bugTypeCol As Long unreliable (not autopopulated by JIRA?)
+    Dim summaryCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.priceBugSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/refer=ence-a-cell-by-its-column-name
+        'set the Component/s column
+        For myCol = 1 To lastColPriceBugs
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            costBugsByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Bug Type column
+        For myCol = 1 To lastColBugs
+            If .Cells(headerRow, myCol).Value = "Summary" Then
+                summaryCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            costBugsByComponent = "-2"
+            Exit Function
+        End If
+        
+        
+        countOfBugs = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRowPriceBugs
+            'where (component column = name) AND (Summary starts with "Cost Update -")
+            If .Cells(myRow, ComponentCol).Value = component Then
+                'add to component cost bug count
+                countOfBugs = countOfBugs + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    costBugsByComponent = countOfBugs
+
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDD
+End Function

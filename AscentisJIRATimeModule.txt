@@ -1,0 +1,491 @@
+'This does NOT Handle project add hours logged as those have to be by fix version
+Option Explicit
+
+'module scope variables
+Dim workedLastRow As Long
+Dim workedlastCol As Long
+Dim loggedLastRow As Long
+Dim loggedLastCol As Long
+
+Sub setLasts()
+
+        'get the dimensions of both dataSheet tables
+        'CITE: http://stackoverflow.com/questions/6301665/how-to-count-the-number-of-rows-in-excel-with-data
+        'call Globals module for global public constants
+        Call setSheets
+        
+        workedLastRow = Globals.ADPTimeSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        workedlastCol = Globals.ADPTimeSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+        loggedLastRow = Globals.hourLogSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        loggedLastCol = Globals.hourLogSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+
+End Sub
+
+Sub test() 'place cursor at start of this line and then F8
+
+        MsgBox regHoursWorkedByEmployeeID("Gary Scheatzle")
+        
+End Sub
+'This function will return the sum of all the "Time Spent (h)" column of the Timesheet Report from JIRA where (assignee = <param>)
+Public Function hoursLoggedByAssignee(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim hours As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+        
+    'Alias dataSheet as "."
+    With Globals.hourLogSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Username" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            hoursLoggedByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent (h) column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent (h)" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hoursLoggedByAssignee = "-2"
+            Exit Function
+        End If
+        
+        hours = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To loggedLastRow
+            'where (assignee column = name)
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'add to assigneee bug count
+                hours = hours + .Cells(myRow, timeSpentCol).Value
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    hoursLoggedByAssignee = hours
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of all the "Time Spent (h)" column of the Timesheet Report from JIRA where (assignee = <param>)
+Public Function hoursLoggedByComponent(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim hours As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+        
+    'Alias dataSheet as "."
+    With Globals.hourLogSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Username" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            hoursLoggedByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent (h) column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent (h)" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hoursLoggedByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the mfrUpdate column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hoursLoggedByComponent = "-3"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To loggedLastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            hoursLoggedByComponent = "-4"
+            Exit Function
+        End If
+        
+        hours = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To loggedLastRow
+            'where (assignee column = name)
+            If .Cells(myRow, componentsCol).Value = assignee Then
+                'add to assigneee bug count
+                hours = hours + .Cells(myRow, timeSpentCol).Value
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    hoursLoggedByComponent = hours
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+'This function will return the value from the hours column of the ADP report where (assignee = <param>) and description = regular
+Public Function regHoursWorkedByEmployeeID(empId As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim hours As Double
+    Dim temp As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim idCol As Long
+    Dim paidHoursCol As Long
+    Dim paidTypeCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+    Call setLasts
+        
+    'Alias dataSheet as "."
+    With Globals.ADPTimeSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Fixed Name" Then
+                idCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            regHoursWorkedByEmployeeID = "-1"
+            Exit Function
+        End If
+
+        'set the hours column as paidHours
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Reg Hrs" Then
+                paidHoursCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            regHoursWorkedByEmployeeID = "-2"
+            Exit Function
+        End If
+
+        'set the paytype column as paidType
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Paycode" Then
+                paidTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            regHoursWorkedByEmployeeID = "-3"
+            Exit Function
+        End If
+        hours = 0
+        temp = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To workedLastRow
+            'where (name column = assignee)
+            If .Cells(myRow, idCol).Value = empId Then
+                'if paycode column = "0[WKHR]" which means regular hours in Ascentis
+                If .Cells(myRow, paidTypeCol).Value = "0 [WKHR]" Then
+                    'add to assigneee bug count
+                    temp = temp + .Cells(myRow, paidHoursCol).Value
+                End If
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    hours = CDbl(temp)
+        
+    'return the desired value
+    regHoursWorkedByEmployeeID = hours
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+'This function will return the value from the hours column of the ADP Report where (Employee = <param>)and Description = overtime
+Public Function otHoursWorkedByEmployeeID(empId As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim hours As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim idCol As Long
+    Dim earningsTypeCol As Long
+    Dim paidHoursCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+    Call setLasts
+        
+    'Alias dataSheet as "."
+    With Globals.ADPTimeSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        
+        'set the Assignee column
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Fixed Name" Then
+                idCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            otHoursWorkedByEmployeeID = "-1"
+            Exit Function
+        End If
+
+
+        'set the Description column as earnings type
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "OT" Then
+                paidHoursCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            otHoursWorkedByEmployeeID = "-2"
+            Exit Function
+        End If
+    
+        
+        hours = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To workedLastRow
+            'where (name column = assignee)
+            
+            If .Cells(myRow, idCol).Value = empId Then
+                'add to assigneee bug count
+                hours = hours + .Cells(myRow, paidHoursCol).Value
+            End If
+            
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    otHoursWorkedByEmployeeID = hours
+    
+'VERFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+'This function will return the vlaue of the hours column of the ADP Report where (assignee = <param>) and description = PTO Hourly
+Public Function ptoHoursWorkedByEmployeeID(empId As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim hours As Double
+    Dim temp As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim idCol As Long
+    Dim paidHoursCol As Long
+    Dim paidTypeCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+    Call setLasts
+        
+    'Alias dataSheet as "."
+    With Globals.ADPTimeSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Fixed Name" Then
+                idCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            ptoHoursWorkedByEmployeeID = "-1"
+            Exit Function
+        End If
+
+        'set the hours column as paidHours
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Reg Hrs" Then
+                paidHoursCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            ptoHoursWorkedByEmployeeID = "-2"
+            Exit Function
+        End If
+
+        'set the paytype column as paidType
+        For myCol = 1 To workedlastCol
+            If .Cells(headerRow, myCol).Value = "Paycode" Then
+                paidTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            ptoHoursWorkedByEmployeeID = "-3"
+            Exit Function
+        End If
+        hours = 0
+        temp = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To workedLastRow
+            'where (name column = assignee)
+            If .Cells(myRow, idCol).Value = empId Then
+                'if paycode column = PTO, FHOL or BRVM
+                If .Cells(myRow, paidTypeCol).Value = "7 [FHOL]" Or .Cells(myRow, paidTypeCol).Value = "2 [PTO]" Or .Cells(myRow, paidTypeCol).Value = "5 [BRVM]" Then
+                    'add to assigneee bug count
+                    temp = temp + .Cells(myRow, paidHoursCol).Value
+                End If
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    hours = CDbl(temp)
+        
+    'return the desired value
+    ptoHoursWorkedByEmployeeID = hours
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function

@@ -1,0 +1,27 @@
+Option Explicit
+
+Public projectDataSheet As Worksheet
+Public priceBugSheet As Worksheet
+Public bugSheet As Worksheet
+Public quickAddSheet As Worksheet
+Public ADPTimeSheet As Worksheet
+Public hourLogSheet As Worksheet
+
+
+'CITE: http://stackoverflow.com/questions/1176743/can-a-worksheet-object-be-declared-globally-in-excel-vba
+Sub setSheets()
+
+
+'set your sheet names here each month'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    Set projectDataSheet = Worksheets("projects")
+    Set bugSheet = Worksheets("bugs")
+    Set quickAddSheet = Worksheets("quickadds")
+    Set priceBugSheet = Worksheets("pricebugs")
+    Set ADPTimeSheet = Worksheets("ADP")
+    Set hourLogSheet = Worksheets("Timesheet Report")
+    
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+End Sub
+
+

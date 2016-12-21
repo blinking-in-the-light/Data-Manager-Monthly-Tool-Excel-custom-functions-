@@ -1,0 +1,3836 @@
+Option Explicit
+
+'module scope variables
+Dim lastRow As Long
+Dim lastCol As Long
+
+Sub setLasts()
+
+        Call setSheets
+
+        'get the dimensions of both dataSheet tables
+        'CITE: http://stackoverflow.com/questions/6301665/how-to-count-the-number-of-rows-in-excel-with-data
+        'call Globals module for global public constants
+        lastRow = Globals.projectDataSheet.Cells.Find("*", [A1], , , xlByRows, xlPrevious).Row
+        lastCol = Globals.projectDataSheet.Cells.Find("*", [A1], , , xlByColumns, xlPrevious).Column
+
+End Sub
+'This function will return all time logged on new product add projects BY FIX VERSION totalled by assignee
+Public Function ProductAddHoursLogged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim secondsLogged As Long
+    Dim countOfHoursLogged As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'all references to this sheet
+    With Globals.projectDataSheet
+    
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            ProductAddHoursLogged = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            ProductAddHoursLogged = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            ProductAddHoursLogged = "-3"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            ProductAddHoursLogged = "-4"
+            Exit Function
+        End If
+        
+        countOfHoursLogged = 0
+        secondsLogged = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, assigneeCol).Value = assignee And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value (in seconds) from Time Spent column, convert to hours, and add it to countOfHoursLogged
+                secondsLogged = .Cells(myRow, timeSpentCol).Value
+                countOfHoursLogged = countOfHoursLogged + (secondsLogged / 3600)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    ProductAddHoursLogged = countOfHoursLogged
+    
+End Function
+'This function will return all time logged on new product add projects BY FIX VERSION totalled by assignee
+Public Function allHoursLoggedFixVers(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim secondsLogged As Long
+    Dim countOfHoursLogged As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'all references to this sheet
+    With Globals.projectDataSheet
+    
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            allHoursLoggedFixVers = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            allHoursLoggedFixVers = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            allHoursLoggedFixVers = "-4"
+            Exit Function
+        End If
+        
+        countOfHoursLogged = 0
+        secondsLogged = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value (in seconds) from Time Spent column, convert to hours, and add it to countOfHoursLogged
+                secondsLogged = .Cells(myRow, timeSpentCol).Value
+                countOfHoursLogged = countOfHoursLogged + (secondsLogged / 3600)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    allHoursLoggedFixVers = countOfHoursLogged
+    
+End Function
+'This function will return all time logged on new product add projects BY FIX VERSION totalled by assignee
+Public Function allHoursLoggedFixVersByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim secondsLogged As Long
+    Dim countOfHoursLogged As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'all references to this sheet
+    With Globals.projectDataSheet
+    
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            allHoursLoggedFixVersByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            allHoursLoggedFixVersByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            allHoursLoggedFixVersByComponent = "-4"
+            Exit Function
+        End If
+        
+        countOfHoursLogged = 0
+        secondsLogged = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, componentsCol).Value = component Then
+                'take value (in seconds) from Time Spent column, convert to hours, and add it to countOfHoursLogged
+                secondsLogged = .Cells(myRow, timeSpentCol).Value
+                countOfHoursLogged = countOfHoursLogged + (secondsLogged / 3600)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    allHoursLoggedFixVersByComponent = countOfHoursLogged
+    
+End Function
+'This function will return all time logged on new product add projects BY FIX VERSION totalled by assignee
+Public Function addHoursByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim secondsLogged As Long
+    Dim countOfHoursLogged As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim timeSpentCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'all references to this sheet
+    With Globals.projectDataSheet
+    
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            addHoursByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            addHoursByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            addHoursByComponent = "-3"
+            Exit Function
+        End If
+        
+        countOfHoursLogged = 0
+        secondsLogged = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where component/s column = component AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, ComponentCol).Value = component And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value (in seconds) from Time Spent column, convert to hours, and add it to countOfHoursLogged
+                secondsLogged = .Cells(myRow, timeSpentCol).Value
+                countOfHoursLogged = countOfHoursLogged + (secondsLogged / 3600)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    addHoursByComponent = countOfHoursLogged
+    
+End Function
+'this function will pull values from all reopening columns where assignee = (arg)
+Public Function compositeReopens(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim minorCol As Long
+    Dim moderateCol As Long
+    Dim severeCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the minor column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Minor" Then
+                minorCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            compositeReopens = "-1"
+            Exit Function
+        End If
+        
+        'set the moderate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Moderate" Then
+                moderateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            compositeReopens = "-2"
+            Exit Function
+        End If
+        
+        'set the severe column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Severe" Then
+                severeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            compositeReopens = "-3"
+            Exit Function
+        End If
+        
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            compositeReopens = "-4"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                
+                If IsEmpty(.Cells(myRow, minorCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of minor reopens
+                    curScore = .Cells(myRow, minorCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+                If IsEmpty(.Cells(myRow, moderateCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of moderate reopens
+                    curScore = .Cells(myRow, moderateCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+                If IsEmpty(.Cells(myRow, severeCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of severe reopens
+                    curScore = .Cells(myRow, severeCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    compositeReopens = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where assignee = (arg)AND where the "Data Moderate" column is populated
+Public Function moderateReopens(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim moderateCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the moderate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Moderate" Then
+                moderateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            moderateReopens = "-1"
+            Exit Function
+        End If
+        
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            moderateReopens = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                
+                If IsEmpty(.Cells(myRow, moderateCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of moderate reopens
+                    curScore = .Cells(myRow, moderateCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    moderateReopens = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where component = (arg)AND where the "Data Moderate" column is populated
+Public Function moderateReopensByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim moderateCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the moderate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Moderate" Then
+                moderateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            moderateReopensByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            moderateReopensByComponent = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component
+            If .Cells(myRow, ComponentCol).Value = component Then
+                
+                If IsEmpty(.Cells(myRow, moderateCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of moderate reopens
+                    curScore = .Cells(myRow, moderateCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    moderateReopensByComponent = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where assignee = (arg)AND where the "Data Severe" column is populated
+Public Function severeReopens(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim severeCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the severe column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Severe" Then
+                severeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            severeReopens = "-1"
+            Exit Function
+        End If
+        
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            severeReopens = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                
+                If IsEmpty(.Cells(myRow, severeCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of severe reopens
+                    curScore = .Cells(myRow, severeCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    severeReopens = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where component = (arg)AND where the "Data Severe" column is populated
+Public Function severeReopensByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim severeCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the severe column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Severe" Then
+                severeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            severeReopensByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            severeReopensByComponent = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component
+            If .Cells(myRow, ComponentCol).Value = component Then
+                
+                If IsEmpty(.Cells(myRow, severeCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of severe reopens
+                    curScore = .Cells(myRow, severeCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    severeReopensByComponent = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where assignee = (arg)AND where the "Data Minor" column is populated
+Public Function minorReopens(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim minorCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the minor column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Minor" Then
+                minorCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            minorReopens = "-1"
+            Exit Function
+        End If
+        
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            minorReopens = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                
+                If IsEmpty(.Cells(myRow, minorCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of minor reopens
+                    curScore = .Cells(myRow, minorCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    minorReopens = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'this function will pull values from all reopening columns where component = (arg)AND where the "Data Minor" column is populated
+Public Function minorReopensByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim dataSheet As Object
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim minorCol As Long
+    Dim curScore As Double
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the minor column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Data Severity Minor" Then
+                minorCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            minorReopensByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            minorReopensByComponent = "-2"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        curScore = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component
+            If .Cells(myRow, ComponentCol).Value = component Then
+                
+                If IsEmpty(.Cells(myRow, minorCol).Value) = True Then
+                    curScore = 0
+                Else
+                    'get count of minor reopens
+                    curScore = .Cells(myRow, minorCol).Value
+                End If
+                
+                aggregateScore = aggregateScore + curScore
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    minorReopensByComponent = aggregateScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will average ONLY the number of scoresheets issued for ADD projects on the ___project sheet where (assignee = <param>) and return a percent
+Public Function scoresheeetAvgByAssignee(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim averageScore As Double
+    Dim countOfScores As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim scorecsheetCol As Long
+    Dim mfrUpdateCol As Long
+    Dim issueTypeCol As Long
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            scoresheeetAvgByAssignee = "-1"
+            Exit Function
+        End If
+
+        'set the accuCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Score Sheet" Then
+                scorecsheetCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            scoresheeetAvgByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the mfrUpdate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            scoresheeetAvgByAssignee = "-3"
+            Exit Function
+        End If
+        
+        'set the issueType column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Issue Type" Then
+                issueTypeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            scoresheeetAvgByAssignee = "-4"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        averageScore = 0
+        countOfScores = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+            
+                'only counts add projects and also excludes sub-tasks
+                If ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) And .Cells(myRow, issueTypeCol).Value <> "Sub-task" Then
+                    'if a score sheet was submitted
+                    If .Cells(myRow, scorecsheetCol).Value = "Yes" Then
+                        aggregateScore = aggregateScore + 1
+                    End If
+                    
+                    countOfScores = countOfScores + 1
+                    
+                End If
+             
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        scoresheeetAvgByAssignee = "-7"
+        Exit Function
+    End If
+    
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    scoresheeetAvgByAssignee = averageScore
+    
+End Function
+
+'This function will quantify, tabulate and average accuracy score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+Public Function aggregateScoreAveraged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateProjectScore As Double
+    Dim countOfProjectCategories As Double
+    Dim averageProjectScore As Double
+    Dim aggregateScore As Double
+    Dim countOfScores As Double
+    Dim averageScore As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim specsCol As Long
+    Dim communiCol As Long
+    Dim accuCol As Long
+    Dim enhanceCol As Long
+    Dim scoreString As String
+
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-1"
+            Exit Function
+        End If
+
+
+        'set the accuCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Project Accuracy" Then
+                accuCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-2"
+            Exit Function
+        End If
+        
+        'set the specsCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Specifications" Then
+                specsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-3"
+            Exit Function
+        End If
+        
+        'set the communiCol
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Overall Communication" Then
+                communiCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-4"
+            Exit Function
+        End If
+            
+        'set the enhanceCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Product Enhancement" Then
+                enhanceCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-5"
+            Exit Function
+        End If
+
+                
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveraged = "-6"
+            Exit Function
+        End If
+        
+        aggregateProjectScore = 0
+        countOfProjectCategories = 0
+        averageProjectScore = 0
+        aggregateScore = 0
+        countOfScores = 0
+        averageScore = 0
+
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+            
+                'take value from the accuracy scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, accuCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, accuCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                
+                'take value from the communication scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, communiCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, communiCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                    
+                'take value from the enhancement scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, enhanceCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, enhanceCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                      
+                'take value from the specs scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, specsCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, specsCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next iteration
+                scoreString = ""
+        
+                'If any portion of project was graded, add to employee total:
+                If countOfProjectCategories <> 0 Then
+                    averageProjectScore = aggregateProjectScore / countOfProjectCategories
+                    aggregateScore = aggregateScore + averageProjectScore
+                    countOfScores = countOfScores + 1
+                End If
+               
+            'done with this row
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        aggregateScoreAveraged = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    aggregateScoreAveraged = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will quantify, tabulate and average accuracy score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+Public Function aggregateScoreAveragedByComponent(component As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateProjectScore As Double
+    Dim countOfProjectCategories As Double
+    Dim averageProjectScore As Double
+    Dim aggregateScore As Double
+    Dim countOfScores As Double
+    Dim averageScore As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim specsCol As Long
+    Dim communiCol As Long
+    Dim accuCol As Long
+    Dim enhanceCol As Long
+    Dim scoreString As String
+
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the accuCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Project Accuracy" Then
+                accuCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the specsCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Specifications" Then
+                specsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-3"
+            Exit Function
+        End If
+        
+        'set the communiCol
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Overall Communication" Then
+                communiCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-4"
+            Exit Function
+        End If
+            
+        'set the enhanceCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Product Enhancement" Then
+                enhanceCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-5"
+            Exit Function
+        End If
+
+                
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            aggregateScoreAveragedByComponent = "-6"
+            Exit Function
+        End If
+        
+        aggregateProjectScore = 0
+        countOfProjectCategories = 0
+        averageProjectScore = 0
+        aggregateScore = 0
+        countOfScores = 0
+        averageScore = 0
+
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, componentsCol).Value = component Then
+            
+                'take value from the accuracy scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, accuCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, accuCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                
+                'take value from the communication scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, communiCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, communiCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                    
+                'take value from the enhancement scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, enhanceCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, enhanceCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next loop
+                scoreString = ""
+                      
+                'take value from the specs scoring column and aggregate it, while counting number of values
+                If IsEmpty(.Cells(myRow, specsCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, specsCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateProjectScore = aggregateProjectScore + 5
+                    Case "Good"
+                        aggregateProjectScore = aggregateProjectScore + 3
+                    Case "Needs Improvement"
+                        aggregateProjectScore = aggregateProjectScore + 1
+                    Case "NA"
+                        aggregateProjectScore = aggregateProjectScore
+                    Case Else 'error checking
+                        aggregateProjectScore = aggregateProjectScore - 1000
+                    End Select
+                    
+                'only average where a score was given, don't punish for NULLs
+                If scoreString <> "NA" Then
+                    countOfProjectCategories = countOfProjectCategories + 1
+                End If
+                
+                'reset for next iteration
+                scoreString = ""
+        
+                'If any portion of project was graded, add to employee total:
+                If countOfProjectCategories <> 0 Then
+                    averageProjectScore = aggregateProjectScore / countOfProjectCategories
+                    aggregateScore = aggregateScore + averageProjectScore
+                    countOfScores = countOfScores + 1
+                End If
+               
+            'done with this row
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        aggregateScoreAveragedByComponent = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    aggregateScoreAveragedByComponent = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will quantify, tabulate and average accuracy score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+Public Function accuScoreAveraged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim averageScore As Double
+    Dim countOfScores As Double
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim accuCol As Long
+    Dim scoreString As String
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            accuScoreAveraged = "-1"
+            Exit Function
+        End If
+
+
+        'set the accuCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Project Accuracy" Then
+                accuCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            accuScoreAveraged = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            accuScoreAveraged = "-3"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        averageScore = 0
+        countOfScores = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value from the accuracy scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, accuCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, accuCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateScore = aggregateScore + 5
+                    Case "Good"
+                        aggregateScore = aggregateScore + 3
+                    Case "Needs Improvement"
+                        aggregateScore = aggregateScore + 1
+                    Case "NA"
+                        aggregateScore = aggregateScore + 0
+                    Case Else 'error checking
+                        aggregateScore = aggregateScore - 1000
+                    End Select
+                    
+                'Only if the accuracy field was graded, include employee total (don't punish NULLs):
+                If scoreString <> "NA" Then
+                    countOfScores = countOfScores + 1
+                End If
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        accuScoreAveraged = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    accuScoreAveraged = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+
+'This function will quantify, tabulate and average enhancement score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+Public Function EnhanceScoreAveraged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim averageScore As Double
+    Dim countOfScores As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim enhanceCol As Long
+    Dim scoreString As String
+
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+        
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            EnhanceScoreAveraged = "-1"
+            Exit Function
+        End If
+
+
+        'set the enhanceCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Product Enhancement" Then
+                enhanceCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            EnhanceScoreAveraged = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            EnhanceScoreAveraged = "-4"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        averageScore = 0
+        countOfScores = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value from the enhancement scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, enhanceCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, enhanceCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateScore = aggregateScore + 5
+                    Case "Good"
+                        aggregateScore = aggregateScore + 3
+                    Case "Needs Improvement"
+                        aggregateScore = aggregateScore + 1
+                    Case "NA"
+                        aggregateScore = aggregateScore + 0
+                    Case Else 'error checking
+                        aggregateScore = aggregateScore - 1000
+                    End Select
+                    
+                'Only if the enhancement field was graded, include employee total (don't punish NULLs):
+                If scoreString <> "NA" Then
+                    countOfScores = countOfScores + 1
+                End If
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        EnhanceScoreAveraged = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    EnhanceScoreAveraged = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will quantify, tabulate and average communication score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+'NOTE: the declaration of a UDF starts with Public Function, the functionname, any params followed by their type ("As Integer") and, outside the params, the type returned by the function
+Public Function CommuniScoreAveraged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim averageScore As Double
+    Dim countOfScores As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim communiCol As Long
+    Dim scoreString As String
+    Dim communiScore As String
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            CommuniScoreAveraged = "-1"
+            Exit Function
+        End If
+        
+        'set the communiCol
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Overall Communication" Then
+                communiCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            CommuniScoreAveraged = "-2"
+            Exit Function
+        End If
+                
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            CommuniScoreAveraged = "-3"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        averageScore = 0
+        countOfScores = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value from the communication scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, communiCol).Value) = True Then
+                    scoreString = "NA"
+                Else
+                    scoreString = .Cells(myRow, communiCol).Value
+                End If
+                
+                Select Case scoreString
+                    Case "Excellent"
+                        aggregateScore = aggregateScore + 5
+                    Case "Good"
+                        aggregateScore = aggregateScore + 3
+                    Case "Needs Improvement"
+                        aggregateScore = aggregateScore + 1
+                    Case "NA"
+                        aggregateScore = aggregateScore + 0
+                    Case Else 'error checking
+                        aggregateScore = aggregateScore - 1000
+                    End Select
+                    
+                'Only if the enhancement field was graded, include employee total (don't punish NULLs):
+                If scoreString <> "NA" Then
+                    countOfScores = countOfScores + 1
+                End If
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        CommuniScoreAveraged = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    CommuniScoreAveraged = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will quantify, tabulate and average specs score data from all rows of the ___project sheet where (assignee = <param>) and return a composite score between 1 and 5
+Public Function SpecsScoreAveraged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim aggregateScore As Double
+    Dim averageScore As Double
+    Dim countOfScores As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim componentsCol As Long
+    Dim specsCol As Long
+    Dim specScoreString As String
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SpecsScoreAveraged = "-1"
+            Exit Function
+        End If
+
+
+        'set the specsCol column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Specifications" Then
+                specsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SpecsScoreAveraged = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SpecsScoreAveraged = "-3"
+            Exit Function
+        End If
+        
+        aggregateScore = 0
+        averageScore = 0
+        countOfScores = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value from the spec scoring column and aggregate it, while counting number of values
+                'NOTE: Excellent = 5, Good = 3, No Comment = 0 and Needs Improvement = 1
+                If IsEmpty(.Cells(myRow, specsCol).Value) = True Then
+                    specScoreString = "NA"
+                Else
+                    specScoreString = .Cells(myRow, specsCol).Value
+                End If
+                
+                Select Case specScoreString
+                    Case "Excellent"
+                        aggregateScore = aggregateScore + 5
+                    Case "Good"
+                        aggregateScore = aggregateScore + 3
+                    Case "Needs Improvement"
+                        aggregateScore = aggregateScore + 1
+                    Case "NA"
+                        aggregateScore = aggregateScore + 0
+                    Case Else 'error checking
+                        aggregateScore = aggregateScore - 1000
+                    End Select
+                
+                'Only if the enhancement field was graded, include employee total (don't punish NULLs):
+                If specScoreString <> "NA" Then
+                    countOfScores = countOfScores + 1
+                End If
+                
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+    
+    'Error checking
+    If countOfScores = 0 Then
+        SpecsScoreAveraged = "-7"
+        Exit Function
+    End If
+
+    averageScore = aggregateScore / countOfScores
+    'return the desired value
+    SpecsScoreAveraged = averageScore
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+
+'This function will take all estimated sku counts from all rows of the ___project sheet where (assignee = <param>) and (manufacturer update = (existing/new product OR new/new product) and return their sum
+Public Function SKUsAddedByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsAdded As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsAddedByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsAddedByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsAddedByAssignee = "-3"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsAddedByAssignee = "-4"
+            Exit Function
+        End If
+        
+        countOfSKUsAdded = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, assigneeCol).Value = assignee And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from estimated SKU count column and add it to countOfSKUsAdded
+                countOfSKUsAdded = countOfSKUsAdded + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsAddedByAssignee = countOfSKUsAdded
+    
+End Function
+'This function will take all estimated sku counts from all rows of the ___project sheet where (assignee = <param>) and (manufacturer update = (existing/new product OR new/new product) and return their sum
+Public Function SKUsAddedByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsAdded As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsAddedByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsAddedByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsAddedByComponent = "-3"
+            Exit Function
+        End If
+
+        
+        countOfSKUsAdded = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where components column = component AND manufacturer update column = ("Existing Manufacturer - New Products" OR "New Manufacturer - New Products")
+            If .Cells(myRow, ComponentCol).Value = component And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from estimated SKU count column and add it to countOfSKUsAdded
+                countOfSKUsAdded = countOfSKUsAdded + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsAddedByComponent = countOfSKUsAdded
+    
+End Function
+
+
+'This function will return all time logged in JIRA totalled by assignee
+Public Function JIRAHoursLogged(assignee As String) As Double
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim secondsLogged As Long
+    Dim countOfHoursLogged As Double
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim timeSpentCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'all references to this sheet
+    With Globals.projectDataSheet
+           
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            JIRAHoursLogged = "-1"
+            Exit Function
+        End If
+
+
+        'set the Time Spent column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Time Spent" Then
+                timeSpentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            JIRAHoursLogged = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            JIRAHoursLogged = "-3"
+            Exit Function
+        End If
+        
+        countOfHoursLogged = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value (in seconds) from Time Spent column, convert to hours, and add it to countOfHoursLogged
+                secondsLogged = .Cells(myRow, timeSpentCol).Value
+                countOfHoursLogged = countOfHoursLogged + (secondsLogged / 3600)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    JIRAHoursLogged = countOfHoursLogged
+    
+End Function
+'This function will return the sum of projects from all rows of the ___project sheet where (assignee = <param>)
+Public Function numberOfTotalProjectsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfAssigneeRows As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            numberOfTotalProjectsByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        countOfAssigneeRows = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = assignee
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'increment the count for that assignee
+                countOfAssigneeRows = countOfAssigneeRows + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    numberOfTotalProjectsByAssignee = countOfAssigneeRows
+    
+End Function
+'This function will return the sum of projects from all rows of the ___project sheet where (Component = <param>)
+Public Function numberOfTotalProjectsByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfComponentRows As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            numberOfTotalProjectsByComponent = "-1"
+            Exit Function
+        End If
+
+
+        countOfComponentRows = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component
+            If .Cells(myRow, ComponentCol).Value = component Then
+                'increment the count for that Component
+                countOfComponentRows = countOfComponentRows + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    numberOfTotalProjectsByComponent = countOfComponentRows
+    
+End Function
+'This function will return the sum of projects from all rows of the ___project sheet where (assignee = <param>)
+Public Function numberOfNewAddProjectsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfAssigneeRows As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            numberOfNewAddProjectsByAssignee = "-1"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfNewAddProjectsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfNewAddProjectsByAssignee = "-3"
+            Exit Function
+        End If
+
+        countOfAssigneeRows = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = assignee and manufacturer update includes "new product"
+            If .Cells(myRow, assigneeCol).Value = assignee And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'increment the count for that assignee
+                countOfAssigneeRows = countOfAssigneeRows + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    numberOfNewAddProjectsByAssignee = countOfAssigneeRows
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+'This function will return the sum of projects from all rows of the ___project sheet where (assignee = <param>)and manufacturer update = existing manufacturer - product update or reviews or imagery project or inventory audt
+Public Function numberOfOverhaulProjectsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfAssigneeRows As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            numberOfOverhaulProjectsByAssignee = "-1"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfOverhaulProjectsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfOverhaulProjectsByAssignee = "-3"
+            Exit Function
+        End If
+
+        countOfAssigneeRows = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = assignee and manufacturer update isn't new product or pricing
+            If .Cells(myRow, assigneeCol).Value = assignee And (.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Product Improvement" Or .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Reviews" Or .Cells(myRow, mfrUpdateCol).Value = "Imagery Project" Or .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Inventory Audit") Then
+            
+                'increment the count for that assignee
+                countOfAssigneeRows = countOfAssigneeRows + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    numberOfOverhaulProjectsByAssignee = countOfAssigneeRows
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated sku counts from all rows of the ___project sheet where (assignee = <param>) and (manufacturer update = (existing/product improvement) and return their sum
+Public Function SKUsImprovedByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsImproved As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsImprovedByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsImprovedByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsImprovedByAssignee = "-3"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsImprovedByAssignee = "-4"
+            Exit Function
+        End If
+        
+        countOfSKUsImproved = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - Product Improvement")
+            If .Cells(myRow, assigneeCol).Value = assignee And (.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Product Improvement" Or .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Reviews") Then
+                'take value from estimated SKU count column and add it to countOfSKUsImproved
+                countOfSKUsImproved = countOfSKUsImproved + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsImprovedByAssignee = countOfSKUsImproved
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated sku counts from all rows of the project sheet where (component = <param>) and (manufacturer update = existing/product improvement or reviews, and return their sum
+Public Function SKUsImprovedByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsImproved As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsImprovedByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsImprovedByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsImprovedByComponent = "-3"
+            Exit Function
+        End If
+        
+        
+        countOfSKUsImproved = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component AND manufacturer update column = ("Product Improvement" or "Reviews")
+            If .Cells(myRow, ComponentCol).Value = component And (.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Product Improvement" Or .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Reviews") Then
+                'take value from estimated SKU count column and add it to countOfSKUsImproved
+                countOfSKUsImproved = countOfSKUsImproved + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsImprovedByComponent = countOfSKUsImproved
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will return the sum of projects from all rows of the ___project sheet where (assignee = <param>) and (manufacturer update = Existing Manufacturer - Pricing Update)
+Public Function numberOfPriceProjectsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfAssigneeRows As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            numberOfPriceProjectsByAssignee = "-1"
+            Exit Function
+        End If
+
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfPriceProjectsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            numberOfPriceProjectsByAssignee = "-3"
+            Exit Function
+        End If
+
+        countOfAssigneeRows = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = assignee and manufacturer update column = price update
+            If .Cells(myRow, assigneeCol).Value = assignee And .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Pricing Update" Then
+                'increment the count for that assignee
+                countOfAssigneeRows = countOfAssigneeRows + 1
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    numberOfPriceProjectsByAssignee = countOfAssigneeRows
+ 
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated sku counts from all rows of the ___project sheet where (assignee = <param>) and (manufacturer update = (Existing Manufacturer - Pricing Update) and return their sum
+Public Function SKUsPricedByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsPriced As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    Dim componentsCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsPricedByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsPricedByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsPricedByAssignee = "-3"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsPricedByAssignee = "-4"
+            Exit Function
+        End If
+        
+        countOfSKUsPriced = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND manufacturer update column = ("Existing Manufacturer - Pricing Update")
+            If .Cells(myRow, assigneeCol).Value = assignee And .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Pricing Update" Then
+                'take value from estimated SKU count column and add it to countOfSKUsPriced
+                countOfSKUsPriced = countOfSKUsPriced + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsPricedByAssignee = countOfSKUsPriced
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated sku counts from all rows of the project sheet where (component = <param>) and (manufacturer update = (Existing Manufacturer - Pricing Update) and return their sum
+Public Function SKUsPricedByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    'NOTE: Dim means variable in VBAese
+    Dim countOfSKUsPriced As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim SKUsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            SKUsPricedByComponent = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "SKU Estimate" Then
+                SKUsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsPricedByComponent = "-2"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            SKUsPricedByComponent = "-3"
+            Exit Function
+        End If
+
+        
+        countOfSKUsPriced = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = component AND manufacturer update column = ("Existing Manufacturer - Pricing Update")
+            If .Cells(myRow, ComponentCol).Value = component And .Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - Pricing Update" Then
+                'take value from estimated SKU count column and add it to countOfSKUsPriced
+                countOfSKUsPriced = countOfSKUsPriced + (.Cells(myRow, SKUsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    SKUsPricedByComponent = countOfSKUsPriced
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated record counts from all rows of the ___project sheet where (assignee = <param>) and return their sum
+Public Function recordsByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim countOfRecords As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim recordsCol As Long
+    Dim componentsCol As Long
+
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            recordsByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Total Records" Then
+                recordsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsByAssignee = "-3"
+            Exit Function
+        End If
+        
+        countOfRecords = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee Then
+                'take value from Total Records column and add it to countOfRecordsAdded
+                countOfRecords = countOfRecords + (.Cells(myRow, recordsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    recordsByAssignee = countOfRecords
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated record counts from all rows of the ___project sheet where (assignee = <param>) and return their sum
+Public Function recordsAddedByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim countOfRecords As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim recordsCol As Long
+    Dim componentsCol As Long
+    Dim mfrUpdateCol As Long
+
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            recordsAddedByAssignee = "-1"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Total Records" Then
+                recordsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsAddedByAssignee = "-2"
+            Exit Function
+        End If
+        
+        'set the Components column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                componentsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsAddedByAssignee = "-3"
+            Exit Function
+        End If
+        
+                'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsAddedByAssignee = "-4"
+            Exit Function
+        End If
+        
+        countOfRecords = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name
+            If .Cells(myRow, assigneeCol).Value = assignee And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from Total Records column and add it to countOfRecordsAdded
+                countOfRecords = countOfRecords + (.Cells(myRow, recordsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    recordsAddedByAssignee = countOfRecords
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated record counts from all rows of the project sheet where (assignee = <param>) and mfr update NOT add project, and return their sum
+Public Function recordsUpdatedByAssignee(assignee As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim countOfRecords As Long
+    Dim myRow As Long 'needed?
+    Dim myCol As Long 'needed?
+    Dim headerRow As Long
+    Dim assigneeCol As Long
+    Dim recordsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Assignee column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Assignee" Then
+                assigneeCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            recordsUpdatedByAssignee = "-1"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsUpdatedByAssignee = "-2"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Total Records" Then
+                recordsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsUpdatedByAssignee = "-3"
+            Exit Function
+        End If
+    
+        
+        countOfRecords = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where assignee column = name AND mfr update not add
+            If .Cells(myRow, assigneeCol).Value = assignee And Not ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from Total Records column and add it to countOfRecordsAdded
+                countOfRecords = countOfRecords + (.Cells(myRow, recordsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    recordsUpdatedByAssignee = countOfRecords
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+'This function will take all estimated record counts from all rows of the project sheet where (Component = <param>) and mfr update NOT add project, and return their sum
+Public Function recordsUpdatedByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim countOfRecords As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim recordsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            recordsUpdatedByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsUpdatedByComponent = "-2"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Total Records" Then
+                recordsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsUpdatedByComponent = "-3"
+            Exit Function
+        End If
+    
+        
+        countOfRecords = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = name AND mfr update not add or pricing
+            If .Cells(myRow, ComponentCol).Value = component And Not ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from Total Records column and add it to countOfRecordsAdded
+                countOfRecords = countOfRecords + (.Cells(myRow, recordsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    recordsUpdatedByComponent = countOfRecords
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
+'This function will take all estimated record counts from all rows of the project sheet where (Component = <param>) and mfr update NOT add project, and return their sum
+Public Function recordsAddedByComponent(component As String) As Long
+
+    'Declare Variables'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim countOfRecords As Long
+    Dim myRow As Long
+    Dim myCol As Long
+    Dim headerRow As Long
+    Dim ComponentCol As Long
+    Dim recordsCol As Long
+    Dim mfrUpdateCol As Long
+    
+    'Set sheet and variables''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Call setLasts
+    
+    'Alias dataSheet as "."
+    With Globals.projectDataSheet
+        
+        'Jira headers will always be in row 1 after formatting
+        headerRow = 1
+        
+        'set the relevant columns by their JIRA header Names
+        'CITE: http://stackoverflow.com/questions/14524053/reference-a-cell-by-its-column-name
+
+        'set the Component column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Component/s" Then
+                ComponentCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        'CITE: Tim Jordan
+        If myCol = 0 Then
+            recordsAddedByComponent = "-1"
+            Exit Function
+        End If
+        
+        'set the Manufacturer Update column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Manufacturer Update" Then
+                mfrUpdateCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsAddedByComponent = "-2"
+            Exit Function
+        End If
+
+
+        'set the SKU Estimate column
+        For myCol = 1 To lastCol
+            If .Cells(headerRow, myCol).Value = "Total Records" Then
+                recordsCol = myCol
+                Exit For 'no need to keep looking
+            End If
+        Next myCol
+        
+        'Error checking
+        If myCol = 0 Then
+            recordsAddedByComponent = "-3"
+            Exit Function
+        End If
+    
+        
+        countOfRecords = 0
+        
+        'algorithm'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        
+        'for each row of data in the sheet
+        For myRow = (headerRow + 1) To lastRow
+            'where Component column = name AND mfr update not add or pricing
+            If .Cells(myRow, ComponentCol).Value = component And ((.Cells(myRow, mfrUpdateCol).Value = "Existing Manufacturer - New Products") Or (.Cells(myRow, mfrUpdateCol).Value = "New Manufacturer - New Products")) Then
+                'take value from Total Records column and add it to countOfRecordsAdded
+                countOfRecords = countOfRecords + (.Cells(myRow, recordsCol).Value)
+            End If
+            
+        'advance for loop until Lastrow
+        Next myRow
+        
+    End With 'bye bye dataSheet
+        
+    'return the desired value
+    recordsAddedByComponent = countOfRecords
+    
+'VERIFIEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+End Function
+
